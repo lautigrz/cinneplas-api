@@ -6,6 +6,9 @@ import bcrypt from 'bcrypt';
 import type { IAuthService } from "./interfaces/auth.service.interface.js";
 import { UserMapper } from "./mappers/user.mapper.js";
 import { JwtService } from "@nestjs/jwt";
+import { UserAlreadyExistsException } from "./exceptions/UserAlreadyExistsException.js";
+import { InvalidCredentialsException } from "./exceptions/InvalidCredentialsException.js";
+
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -15,7 +18,7 @@ export class AuthService implements IAuthService {
 
         const user = await this.authRepository.findByEmail(data.email);
         if (user) {
-            throw new Error("User already exists");
+            throw new UserAlreadyExistsException(data.email);
         }
 
         const password = this.hashPassword(data.password);
@@ -33,11 +36,11 @@ export class AuthService implements IAuthService {
     async login(data: LoginInput): Promise<any> {
         const user = await this.authRepository.findByEmail(data.email);
         if (!user) {
-            throw new Error("User not found");
+            throw new InvalidCredentialsException();
         }
         const password = this.comparePassword(data.password, user.password);
         if (!password) {
-            throw new Error("Invalid password");
+            throw new InvalidCredentialsException();
         }
 
         const payload = {
