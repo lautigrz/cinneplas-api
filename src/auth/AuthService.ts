@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AuthRepository } from "./AuthRepository.js";
+import type { IAuthRepository } from "./interfaces/auth.repository.js";
 import { RegisterInput } from "./schemas/RegisterSchema.js";
 import { LoginInput } from "./schemas/LoginSchema.js";
 import bcrypt from 'bcrypt';
@@ -12,7 +12,7 @@ import { InvalidCredentialsException } from "./exceptions/InvalidCredentialsExce
 
 @Injectable()
 export class AuthService implements IAuthService {
-    constructor(private readonly authRepository: AuthRepository, private jwtService: JwtService) { }
+    constructor(private readonly authRepository: IAuthRepository, private jwtService: JwtService) { }
 
     async register(data: RegisterInput): Promise<any> {
 
@@ -26,7 +26,7 @@ export class AuthService implements IAuthService {
         const userCreated = await this.authRepository.create({ ...data, password });
 
         return {
-            userId: userCreated.userId,
+            userPublicId: userCreated.userPublicId,
             name: userCreated.name,
             email: userCreated.email,
             role: userCreated.role,
