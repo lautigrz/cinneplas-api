@@ -145,7 +145,7 @@ describe('AuthService', () => {
             expect(result).toMatchObject({
                 accessToken: 'mocked.jwt.token',
                 user: {
-                    id: storedUser.userId,
+                    userId: storedUser.userPublicId,
                     name: storedUser.name,
                     email: storedUser.email,
                     role: storedUser.role,
@@ -154,7 +154,7 @@ describe('AuthService', () => {
         });
 
         it('should sign the JWT with the correct payload (sub + role)', async () => {
-            const storedUser = buildUser({ userId: 42, role: Role.Admin });
+            const storedUser = buildUser({ role: Role.Admin });
 
             authRepository.findByEmail.mockResolvedValue(storedUser);
             compareSync.mockReturnValue(true);
@@ -162,7 +162,7 @@ describe('AuthService', () => {
             await service.login(buildLoginInput());
 
             expect(jwtService.sign).toHaveBeenCalledWith({
-                sub: 42,
+                sub: storedUser.userPublicId,
                 role: Role.Admin,
             });
         });
@@ -216,6 +216,52 @@ describe('AuthService', () => {
             const result = await service.login(buildLoginInput());
 
             expect(result.user).not.toHaveProperty('password');
+        });
+    });
+
+
+
+    describe('getMe', () => {
+        it('should return the public profile of the user when found', async () => {
+            const storedUser = buildUser();
+
+            authRepository.findById.mockResolvedValue(storedUser);
+
+            const result = await service.getMe(storedUser.userPublicId);
+
+            expect(result).toEqual({
+                userId: storedUser.userPublicId,
+                name: storedUser.name,
+                email: storedUser.email,
+                role: storedUser.role,
+            });
+        });
+
+        it('should NOT expose the password in the returned profile', async () => {
+            const storedUser = buildUser();
+
+            authRepository.findById.mockResolvedValue(storedUser);
+
+            const result = await service.getMe(storedUser.userPublicId);
+
+            expect(result).not.toHaveProperty('password');
+        });
+
+        it('should throw UnauthorizedException when the user is not found', async () => {
+            authRepository.findById.mockResolvedValue(null);
+
+            await expect(service.getMe('non-existent-id')).rejects.toThrow(
+                /non-existent-id/,
+            );
+        });
+
+        it('should look up the user by the provided userPublicId', async () => {
+            const publicId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+            authRepository.findById.mockResolvedValue(buildUser({ userPublicId: publicId }));
+
+            await service.getMe(publicId);
+
+            expect(authRepository.findById).toHaveBeenCalledWith(publicId);
         });
     });
 });

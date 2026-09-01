@@ -34,7 +34,7 @@ export function buildUser(overrides: Partial<User> = {}): User {
     name: 'John Doe',
     email: 'john@example.com',
     password: HASHED_PASSWORD,
-    role: Role.User,
+    role: Role.USER,
     createdAt: new Date('2024-01-01T00:00:00.000Z'),
     updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     ...overrides,

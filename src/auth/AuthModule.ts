@@ -7,6 +7,8 @@ import "dotenv/config";
 import { JwtStrategy } from './strategies/JwtStrategies.js';
 import { PassportModule } from "@nestjs/passport";
 import { RolesGuard } from './guards/RolesGuard.js';
+import { AUTH_REPOSITORY } from './interfaces/auth.repository.js';
+import { AUTH_SERVICE } from './interfaces/auth.service.interface.js';
 @Module({
     imports: [
         PassportModule.register({
@@ -19,7 +21,10 @@ import { RolesGuard } from './guards/RolesGuard.js';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthRepository, AuthService, JwtStrategy, RolesGuard],
-    exports: [AuthRepository, AuthService],
+    providers: [
+        { provide: AUTH_REPOSITORY, useClass: AuthRepository },
+        { provide: AUTH_SERVICE, useClass: AuthService },
+        JwtStrategy, RolesGuard],
+    exports: [JwtStrategy, RolesGuard],
 })
 export class AuthModule { }
