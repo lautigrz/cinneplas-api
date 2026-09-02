@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import type { ArgumentsHost } from '@nestjs/common';
+import { ZodValidationException } from 'nestjs-zod';
+import { z } from 'zod';
 
 import { HttpExceptionFilter } from '../filters/HttpExceptionFilter.js';
 import { ApiException } from '../base/ApiException.js';
@@ -113,6 +115,93 @@ describe('HttpExceptionFilter', () => {
             const body = json.mock.calls[0][0];
             expect(body.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
             expect(body.path).toBe('/api/cinemas');
+            expect(body.timeStamp).toBeDefined();
+        });
+    });
+
+
+    describe('when the exception is a ZodValidationException', () => {
+        function buildZodValidationException(): ZodValidationException {
+            const schema = z.object({
+                name: z.string().min(5, 'El nombre debe tener al menos 5 caracteres'),
+                address: z.string().min(10, 'La dirección debe tener al menos 10 caracteres'),
+            });
+            const result = schema.safeParse({ name: 'ab', address: 'x' });
+            return new ZodValidationException((result as any).error);
+        }
+
+        it('should respond with 422 UNPROCESSABLE_ENTITY', () => {
+            const { host, status } = buildMockHost();
+
+            filter.catch(buildZodValidationException(), host);
+
+            expect(status).toHaveBeenCalledWith(HttpStatus.UNPROCESSABLE_ENTITY);
+        });
+
+        it('should include a human-readable message', () => {
+            const { host, json } = buildMockHost();
+
+            filter.catch(buildZodValidationException(), host);
+
+            expect(json).toHaveBeenCalledWith(
+                expect.objectContaining({ message: 'Datos de entrada inválidos' }),
+            );
+        });
+
+        it('should include an errors array with field and message per violation', () => {
+            const { host, json } = buildMockHost();
+
+            filter.catch(buildZodValidationException(), host);
+
+            const body = json.mock.calls[0][0];
+            expect(Array.isArray(body.errors)).toBe(true);
+            expect(body.errors.length).toBeGreaterThan(0);
+            body.errors.forEach((e: any) => {
+                expect(e).toHaveProperty('field');
+                expect(e).toHaveProperty('message');
+            });
+        });
+
+        it('should still include statusCode, timeStamp and path', () => {
+            const { host, json } = buildMockHost({ url: '/api/cinemas' });
+
+            filter.catch(buildZodValidationException(), host);
+
+            const body = json.mock.calls[0][0];
+            expect(body.statusCode).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
+            expect(body.path).toBe('/api/cinemas');
+            expect(body.timeStamp).toBeDefined();
+        });
+    });
+
+
+    describe('when the exception is an HttpException (NestJS / Passport)', () => {
+        it('should respond with 401 for UnauthorizedException', () => {
+            const { host, status } = buildMockHost();
+
+            filter.catch(new UnauthorizedException('Credenciales inválidas'), host);
+
+            expect(status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+        });
+
+        it('should include the message from the HttpException', () => {
+            const { host, json } = buildMockHost();
+
+            filter.catch(new HttpException('Forbidden resource', HttpStatus.FORBIDDEN), host);
+
+            expect(json).toHaveBeenCalledWith(
+                expect.objectContaining({ message: 'Forbidden resource' }),
+            );
+        });
+
+        it('should still include statusCode, timeStamp and path', () => {
+            const { host, json } = buildMockHost({ url: '/api/auth/me' });
+
+            filter.catch(new UnauthorizedException(), host);
+
+            const body = json.mock.calls[0][0];
+            expect(body.statusCode).toBe(HttpStatus.UNAUTHORIZED);
+            expect(body.path).toBe('/api/auth/me');
             expect(body.timeStamp).toBeDefined();
         });
     });
