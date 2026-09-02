@@ -8,7 +8,7 @@ import { CurrentUser } from "./decorators/CurrentUser.js";
 import { AUTH_SERVICE, type IAuthService } from "./interfaces/auth.service.interface.js";
 import { LocalAuthGuard } from "./guards/LocalAuthGuard.js";
 import type { AuthenticatedUser } from "./contracts/authenticated-user.js";
-import type { Request } from "express";
+import { GoogleAuthGuard } from "./guards/GoogleAuthGuard.js";
 
 @Controller({ path: '/api/auth', version: '1' })
 export class AuthController {
@@ -17,11 +17,6 @@ export class AuthController {
         @Inject(AUTH_SERVICE)
         private readonly authService: IAuthService) { }
 
-    @Post('register')
-    @HttpCode(201)
-    async register(@Body() data: RegisterDto) {
-        return this.authService.register(data);
-    }
 
     @Post('login')
     @UseGuards(LocalAuthGuard)
@@ -29,6 +24,27 @@ export class AuthController {
     async login(@Req() req: Request & { user: AuthenticatedUser }) {
         return this.authService.login(req.user);
     }
+
+    @Get('google')
+    @UseGuards(GoogleAuthGuard)
+    async googleLogin() {
+        return { message: 'Google login' };
+    }
+
+    @Get('google/callback')
+    @UseGuards(GoogleAuthGuard)
+    async googleLoginCallback(@Req() req: any) {
+        console.log(req?.user);
+        //return this.authService.login(user);
+    }
+
+
+    @Post('register')
+    @HttpCode(201)
+    async register(@Body() data: RegisterDto) {
+        return this.authService.register(data);
+    }
+
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Get('me')
