@@ -3,7 +3,9 @@ import { ICinemaRepository } from "./interfaces/cinema.repository.js";
 import type { CreateCinemaInput } from "./schema/CinemaSchema.js";
 import type { Cinema } from "../generated/prisma/client.js";
 import { CinemaWithRooms } from "./types/CinemaWithRooms.js";
+import { Injectable } from "@nestjs/common";
 
+@Injectable()
 export class CinemaRepository implements ICinemaRepository {
     constructor(private readonly prisma: PrismaService) { }
 

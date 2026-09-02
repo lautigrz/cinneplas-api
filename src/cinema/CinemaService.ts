@@ -3,9 +3,10 @@ import type { ICinemaService } from "./interfaces/cinema.service.js";
 import type { CreateCinemaInput } from "./schema/CinemaSchema.js";
 import type { CinemaResponseDTO } from "./dto/CinemaResponseDTO.js";
 import { CinemaMapper } from "./mappers/CinemaMapper.js";
-import { Inject } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { CINEMA_REPOSITORY } from "./interfaces/cinema.repository.js";
 
+@Injectable()
 export class CinemaService implements ICinemaService {
     constructor(
         @Inject(CINEMA_REPOSITORY)
