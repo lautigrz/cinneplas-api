@@ -1,6 +1,6 @@
 import { PrismaService } from "../prisma/PrismaService.js";
 import { ICinemaRepository } from "./interfaces/cinema.repository.js";
-import type { CreateCinemaInput } from "./schema/CinemaSchema.js";
+import type { CreateCinemaInput } from "./contracts/cinema.schemas.js";
 import type { Cinema } from "../generated/prisma/client.js";
 import { CinemaWithRooms } from "./types/CinemaWithRooms.js";
 import { Injectable } from "@nestjs/common";

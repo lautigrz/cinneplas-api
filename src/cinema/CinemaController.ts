@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, Inject, Post } from "@nestjs/common";
 import { CINEMA_SERVICE, type ICinemaService } from "./interfaces/cinema.service.js";
 import { UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/JwtAuthGuard.js";
-import type { CreateCinemaInput } from "./schema/CinemaSchema.js";
+import { CreateCinemaDto } from "./contracts/cinema.schemas.js";
 import { Roles } from "../auth/decorators/Roles.js";
 import { RolesGuard } from "../auth/guards/RolesGuard.js";
 
@@ -17,7 +17,7 @@ export class CinemaController {
     @Post()
     @Roles("ADMIN")
     @HttpCode(201)
-    async create(@Body() data: CreateCinemaInput) {
+    async create(@Body() data: CreateCinemaDto) {
         return this.cinemaService.create(data);
     }
 

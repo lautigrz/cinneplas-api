@@ -1,5 +1,5 @@
 import type { Cinema } from "../../generated/prisma/client.js";
-import type { CreateCinemaInput } from "../schema/CinemaSchema.js";
+import type { CreateCinemaInput } from "../contracts/cinema.schemas.js";
 import { CinemaWithRooms } from "../types/CinemaWithRooms.js";
 
 export interface ICinemaRepository {

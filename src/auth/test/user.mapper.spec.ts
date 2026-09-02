@@ -4,7 +4,7 @@ import { Role } from '../../generated/prisma/client.js';
 import { UserMapper } from '../mappers/user.mapper.js';
 import { buildUser } from '../test/helpers/auth.fixtures.js';
 
-// ─────────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('UserMapper', () => {
     describe('toProfile', () => {
@@ -26,10 +26,12 @@ describe('UserMapper', () => {
             expect(result.role).toBe(Role.ADMIN);
         });
 
-        it('should NOT include the internal userId (integer primary key)', () => {
+        it('should NOT include the internal userPublicId in the response (exposed as userId)', () => {
             const result = UserMapper.toProfile(buildUser());
 
+            // The property is renamed: userPublicId → userId
             expect(result).not.toHaveProperty('userPublicId');
+            expect(result).toHaveProperty('userId');
         });
 
         it('should NOT expose the password', () => {
@@ -43,29 +45,6 @@ describe('UserMapper', () => {
 
             expect(result).not.toHaveProperty('createdAt');
             expect(result).not.toHaveProperty('updatedAt');
-        });
-    });
-
-    describe('toLoginResponse', () => {
-        it('should return a LoginResponseDTO with accessToken and user profile', () => {
-            const user = buildUser();
-            const token = 'my.jwt.token';
-
-            const result = UserMapper.toLoginResponse(user, token);
-
-            expect(result.accessToken).toBe(token);
-            expect(result.user).toEqual({
-                userId: user.userPublicId,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            });
-        });
-
-        it('should NOT expose the password inside user', () => {
-            const result = UserMapper.toLoginResponse(buildUser(), 'token');
-
-            expect(result.user).not.toHaveProperty('password');
         });
     });
 });

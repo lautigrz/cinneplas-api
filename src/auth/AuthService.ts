@@ -1,15 +1,13 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import type { IAuthRepository } from "./interfaces/auth.repository.js";
-import { RegisterInput } from "./schemas/RegisterSchema.js";
 import bcrypt from 'bcrypt';
 import type { IAuthService } from "./interfaces/auth.service.interface.js";
 import { UserMapper } from "./mappers/user.mapper.js";
-import type { UserProfile } from "./mappers/user.mapper.js";
 import { JwtService } from "@nestjs/jwt";
 import { UserAlreadyExistsException } from "./exceptions/UserAlreadyExistsException.js";
 import { AUTH_REPOSITORY } from "./interfaces/auth.repository.js";
-import type { LoginResponseDTO } from "./dto/LoginResponseDTO.js";
-import type { AuthenticatedUser } from "./dto/AuthenticatedUser.js";
+import type { RegisterInput, LoginResponse, UserProfile } from "./contracts/auth.schemas.js";
+import type { AuthenticatedUser } from "./contracts/authenticated-user.js";
 
 
 @Injectable()
@@ -37,7 +35,7 @@ export class AuthService implements IAuthService {
         };
     }
 
-    async login(authenticatedUser: AuthenticatedUser): Promise<LoginResponseDTO> {
+    async login(authenticatedUser: AuthenticatedUser): Promise<LoginResponse> {
         const payload = {
             sub: authenticatedUser.userPublicId,
             role: authenticatedUser.role,
@@ -55,19 +53,14 @@ export class AuthService implements IAuthService {
         };
     }
 
-    async register(data: RegisterInput): Promise<any> {
+    async register(data: RegisterInput): Promise<UserProfile> {
         const existing = await this.authRepository.findByEmail(data.email);
         if (existing) {
             throw new UserAlreadyExistsException(data.email);
         }
         const password = this.hashPassword(data.password);
         const userCreated = await this.authRepository.create({ ...data, password });
-        return {
-            userPublicId: userCreated.userPublicId,
-            name: userCreated.name,
-            email: userCreated.email,
-            role: userCreated.role,
-        };
+        return UserMapper.toProfile(userCreated);
     }
 
     async getMe(userPublicId: string): Promise<UserProfile> {

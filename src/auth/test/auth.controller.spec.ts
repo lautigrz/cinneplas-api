@@ -3,7 +3,7 @@ import type { MockedFunction } from 'vitest';
 
 import { AuthController } from '../AuthController.js';
 import type { IAuthService } from '../interfaces/auth.service.interface.js';
-import type { AuthenticatedUser } from '../dto/AuthenticatedUser.js';
+import type { AuthenticatedUser } from '../contracts/authenticated-user.js';
 import {
     buildRegisterInput,
     buildUser,
@@ -57,7 +57,7 @@ describe('AuthController', () => {
         it('should delegate to authService.register with the provided body', async () => {
             const input = buildRegisterInput();
             const expectedResponse = {
-                userPublicId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                userId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                 name: input.name,
                 email: input.email,
                 role: 'USER',
@@ -73,7 +73,7 @@ describe('AuthController', () => {
         });
 
         it('should return whatever the service resolves with', async () => {
-            const serviceResponse = { userPublicId: 'abc-123', name: 'Test', email: 'test@test.com', role: 'USER' };
+            const serviceResponse = { userId: 'abc-123', name: 'Test', email: 'test@test.com', role: 'USER' };
             authService.register.mockResolvedValue(serviceResponse);
 
             const result = await controller.register(buildRegisterInput());
@@ -133,9 +133,9 @@ describe('AuthController', () => {
     // ─── getProfile ──────────────────────────────────────────────────────────
 
     describe('getProfile', () => {
-        it('should delegate to authService.getMe with the sub from the current user', async () => {
+        it('should delegate to authService.getMe with the userId from the current user', async () => {
             const storedUser = buildUser();
-            const currentUser = { sub: storedUser.userPublicId, role: storedUser.role };
+            const currentUser = { userId: storedUser.userPublicId, role: storedUser.role };
             const expectedProfile = {
                 userId: storedUser.userPublicId,
                 name: storedUser.name,
@@ -156,7 +156,7 @@ describe('AuthController', () => {
             const profile = { userId: 'uuid-42', name: 'Jane', email: 'jane@example.com', role: 'ADMIN' };
             authService.getMe.mockResolvedValue(profile);
 
-            const result = await controller.getProfile({ sub: 'uuid-42', role: 'ADMIN' });
+            const result = await controller.getProfile({ userId: 'uuid-42', role: 'ADMIN' });
 
             expect(result).toBe(profile);
         });
@@ -165,15 +165,15 @@ describe('AuthController', () => {
             authService.getMe.mockRejectedValue(new Error('Unauthorized'));
 
             await expect(
-                controller.getProfile({ sub: 'non-existent-id', role: 'USER' }),
+                controller.getProfile({ userId: 'non-existent-id', role: 'USER' }),
             ).rejects.toThrow('Unauthorized');
         });
 
-        it('should use user.sub as the public identifier when calling getMe', async () => {
+        it('should use user.userId as the public identifier when calling getMe', async () => {
             const publicId = 'c0ffee00-dead-beef-1234-000000000001';
             authService.getMe.mockResolvedValue({ userId: publicId, name: 'Jane', email: 'jane@example.com', role: 'ADMIN' });
 
-            await controller.getProfile({ sub: publicId });
+            await controller.getProfile({ userId: publicId, role: 'ADMIN' });
 
             expect(authService.getMe).toHaveBeenCalledWith(publicId);
         });

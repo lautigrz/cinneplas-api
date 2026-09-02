@@ -1,3 +1,4 @@
+
 export interface AuthenticatedUser {
     userPublicId: string;
     name: string;

@@ -3,11 +3,11 @@ import type { MockedFunction } from 'vitest';
 
 import { CinemaController } from '../CinemaController.js';
 import type { ICinemaService } from '../interfaces/cinema.service.js';
+import type { CinemaResponse } from '../contracts/cinema.schemas.js';
 import {
     buildCinemaWithRooms,
     buildCreateCinemaInput,
 } from './helpers/cinema.fixtures.js';
-import { CinemaResponseDTO } from '../dto/CinemaResponseDTO.js';
 
 // ─── Mock ICinemaService ──────────────────────────────────────────────────────
 
@@ -25,9 +25,9 @@ function createMockCinemaService(): MockCinemaService {
     };
 }
 
-function buildCinemaResponseDTO(overrides?: Partial<{ idPublic: string; name: string; address: string }>): CinemaResponseDTO {
+function buildCinemaResponse(overrides?: Partial<{ idPublic: string; name: string; address: string }>): CinemaResponse {
     const cinema = buildCinemaWithRooms(overrides);
-    return new CinemaResponseDTO(cinema.idPublic, cinema.name, cinema.address);
+    return { idPublic: cinema.idPublic, name: cinema.name, address: cinema.address };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,24 +52,24 @@ describe('CinemaController', () => {
     describe('create', () => {
         it('should delegate to cinemaService.create with the provided body', async () => {
             const input = buildCreateCinemaInput();
-            const dto = buildCinemaResponseDTO({ name: input.name, address: input.address });
+            const response = buildCinemaResponse({ name: input.name, address: input.address });
 
-            cinemaService.create.mockResolvedValue(dto);
+            cinemaService.create.mockResolvedValue(response);
 
             const result = await controller.create(input);
 
             expect(cinemaService.create).toHaveBeenCalledOnce();
             expect(cinemaService.create).toHaveBeenCalledWith(input);
-            expect(result).toBe(dto);
+            expect(result).toBe(response);
         });
 
         it('should return whatever the service resolves with', async () => {
-            const dto = buildCinemaResponseDTO();
-            cinemaService.create.mockResolvedValue(dto);
+            const response = buildCinemaResponse();
+            cinemaService.create.mockResolvedValue(response);
 
             const result = await controller.create(buildCreateCinemaInput());
 
-            expect(result).toBe(dto);
+            expect(result).toBe(response);
         });
 
         it('should propagate exceptions thrown by cinemaService.create', async () => {
@@ -84,17 +84,17 @@ describe('CinemaController', () => {
 
     describe('getAll', () => {
         it('should delegate to cinemaService.findAll', async () => {
-            const dtos = [
-                buildCinemaResponseDTO(),
-                buildCinemaResponseDTO({ idPublic: 'a1b2c3d4-0000-0000-0000-000000000002', name: 'Cine Norte' }),
+            const responses = [
+                buildCinemaResponse(),
+                buildCinemaResponse({ idPublic: 'a1b2c3d4-0000-0000-0000-000000000002', name: 'Cine Norte' }),
             ];
 
-            cinemaService.findAll.mockResolvedValue(dtos);
+            cinemaService.findAll.mockResolvedValue(responses);
 
             const result = await controller.getAll();
 
             expect(cinemaService.findAll).toHaveBeenCalledOnce();
-            expect(result).toBe(dtos);
+            expect(result).toBe(responses);
         });
 
         it('should return an empty array when there are no cinemas', async () => {
@@ -106,12 +106,12 @@ describe('CinemaController', () => {
         });
 
         it('should return whatever the service resolves with', async () => {
-            const dtos = [buildCinemaResponseDTO()];
-            cinemaService.findAll.mockResolvedValue(dtos);
+            const responses = [buildCinemaResponse()];
+            cinemaService.findAll.mockResolvedValue(responses);
 
             const result = await controller.getAll();
 
-            expect(result).toBe(dtos);
+            expect(result).toBe(responses);
         });
 
         it('should propagate exceptions thrown by cinemaService.findAll', async () => {

@@ -15,7 +15,7 @@ import {
     buildRegisterInput,
     buildUser,
 } from './helpers/auth.fixtures.js';
-import type { AuthenticatedUser } from '../dto/AuthenticatedUser.js';
+import type { AuthenticatedUser } from '../contracts/authenticated-user.js';
 
 // ─── Mock bcrypt module ───────────────────────────────────────────────────────
 
@@ -65,13 +65,13 @@ describe('AuthService', () => {
             const result = await service.register(input);
 
             expect(result).toEqual({
-                userPublicId: storedUser.userPublicId,
+                userId: storedUser.userPublicId,
                 name: storedUser.name,
                 email: storedUser.email,
                 role: storedUser.role,
             });
             expect(result).not.toHaveProperty('password');
-            expect(result).not.toHaveProperty('userId');
+            expect(result).not.toHaveProperty('userPublicId');
         });
 
         it('should hash the password before persisting it', async () => {
