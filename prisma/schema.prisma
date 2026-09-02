@@ -7,13 +7,18 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 model User {
   userId       Int    @id @default(autoincrement())
   userPublicId String @unique @default(uuid())
   name         String @db.VarChar(100)
   email        String @unique @db.VarChar(120)
   password     String @db.VarChar(255)
-  role         Role   @default(User)
+  role         Role   @default(USER)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -21,7 +26,72 @@ model User {
   @@map("users")
 }
 
-enum Role {
-  Admin
-  User
+model Cinema {
+  id        Int      @id @default(autoincrement())
+  idPublic  String   @unique @default(uuid())
+  name      String   @db.VarChar(100)
+  address   String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms CinemaRoom[]
+
+  @@map("cinemas")
+}
+
+model CinemaRoom {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(100)
+
+  capacity Int @db.Integer
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cinemaId Int
+  cinema   Cinema @relation(fields: [cinemaId], references: [id])
+
+  seats Seats[]
+
+  @@map("cinema_rooms")
+}
+
+enum TypeSeat {
+  STANDARD
+  VIP
+  PREMIUM
+}
+
+model Seats {
+  id     Int    @id @default(autoincrement())
+  row    String @db.VarChar(10)
+  number Int    @db.Integer
+
+  positionX Int @db.Integer
+  positionY Int @db.Integer
+
+  type TypeSeat @default(STANDARD)
+
+  isActive Boolean @default(false)
+
+  price Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roomId Int
+  room   CinemaRoom @relation(fields: [roomId], references: [id])
+
+  @@map("seats")
+}
+
+model SeatCategory {
+  id    Int    @id @default(autoincrement())
+  name  String @db.VarChar(100)
+  price Int    @db.Integer
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("seat_categories")
 }

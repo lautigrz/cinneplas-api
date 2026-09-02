@@ -11,6 +11,7 @@ export function createMockAuthRepository(): MockAuthRepository {
   return {
     findByEmail: vi.fn(),
     create: vi.fn(),
+    findById: vi.fn(),
   };
 }
 

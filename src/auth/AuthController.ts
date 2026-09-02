@@ -1,16 +1,18 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
-import { AuthService } from "./AuthService.js";
+import { Body, Controller, Get, HttpCode, Inject, Post, UseGuards } from "@nestjs/common";
 import { RegisterDto } from "./dto/RegisterDto.js";
 import { LoginDto } from "./dto/LoginDto.js";
 import { JwtAuthGuard } from "./guards/JwtAuthGuard.js";
 import { RolesGuard } from "./guards/RolesGuard.js";
 import { Roles } from "./decorators/Roles.js";
 import { CurrentUser } from "./decorators/CurrentUser.js";
+import { AUTH_SERVICE, type IAuthService } from "./interfaces/auth.service.interface.js";
 
-@Controller('auth')
+@Controller({ path: '/api/auth', version: '1' })
 export class AuthController {
 
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        @Inject(AUTH_SERVICE)
+        private readonly authService: IAuthService) { }
 
     @Post('register')
     @HttpCode(201)
@@ -25,10 +27,10 @@ export class AuthController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Get('profile')
-    @Roles("user")
+    @Get('me')
+    @Roles("ADMIN")
     @HttpCode(200)
-    getProfile(@CurrentUser("sub") user: any) {
-        return { "texto": "protegido", user };
+    getProfile(@CurrentUser() user: any) {
+        return this.authService.getMe(user.sub);
     }
 }

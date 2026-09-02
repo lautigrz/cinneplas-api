@@ -10,6 +10,13 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  app.enableCors({
+    origin: ["http://localhost:5173"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();
