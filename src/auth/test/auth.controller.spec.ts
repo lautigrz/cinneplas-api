@@ -133,9 +133,9 @@ describe('AuthController', () => {
     // ─── getProfile ──────────────────────────────────────────────────────────
 
     describe('getProfile', () => {
-        it('should delegate to authService.getMe with the sub from the current user', async () => {
+        it('should delegate to authService.getMe with the userId from the current user', async () => {
             const storedUser = buildUser();
-            const currentUser = { sub: storedUser.userPublicId, role: storedUser.role };
+            const currentUser = { userId: storedUser.userPublicId, role: storedUser.role };
             const expectedProfile = {
                 userId: storedUser.userPublicId,
                 name: storedUser.name,
@@ -156,7 +156,7 @@ describe('AuthController', () => {
             const profile = { userId: 'uuid-42', name: 'Jane', email: 'jane@example.com', role: 'ADMIN' };
             authService.getMe.mockResolvedValue(profile);
 
-            const result = await controller.getProfile({ sub: 'uuid-42', role: 'ADMIN' });
+            const result = await controller.getProfile({ userId: 'uuid-42', role: 'ADMIN' });
 
             expect(result).toBe(profile);
         });
@@ -165,15 +165,15 @@ describe('AuthController', () => {
             authService.getMe.mockRejectedValue(new Error('Unauthorized'));
 
             await expect(
-                controller.getProfile({ sub: 'non-existent-id', role: 'USER' }),
+                controller.getProfile({ userId: 'non-existent-id', role: 'USER' }),
             ).rejects.toThrow('Unauthorized');
         });
 
-        it('should use user.sub as the public identifier when calling getMe', async () => {
+        it('should use user.userId as the public identifier when calling getMe', async () => {
             const publicId = 'c0ffee00-dead-beef-1234-000000000001';
             authService.getMe.mockResolvedValue({ userId: publicId, name: 'Jane', email: 'jane@example.com', role: 'ADMIN' });
 
-            await controller.getProfile({ sub: publicId });
+            await controller.getProfile({ userId: publicId, role: 'ADMIN' });
 
             expect(authService.getMe).toHaveBeenCalledWith(publicId);
         });

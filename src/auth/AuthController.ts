@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, Inject, Post, Req, UseGuards } from "@nestjs/common";
 import { Body } from "@nestjs/common";
-import { RegisterDto } from "./contracts/auth.schemas.js";
+import { RegisterDto, type RequestUser } from "./contracts/auth.schemas.js";
 import { JwtAuthGuard } from "./guards/JwtAuthGuard.js";
 import { RolesGuard } from "./guards/RolesGuard.js";
 import { Roles } from "./decorators/Roles.js";
@@ -34,7 +34,7 @@ export class AuthController {
     @Get('me')
     @Roles("ADMIN")
     @HttpCode(200)
-    getProfile(@CurrentUser() user: any) {
-        return this.authService.getMe(user.sub);
+    getProfile(@CurrentUser() user: RequestUser) {
+        return this.authService.getMe(user.userId);
     }
 }

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createZodDto } from "nestjs-zod";
 
-// ─── Input Schemas ────────────────────────────────────────────────────────────
 
 export const LoginSchema = z.object({
     email: z.string().email("El email no es válido"),
@@ -14,7 +13,6 @@ export const RegisterSchema = z.object({
     password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
-// ─── Output Schemas ───────────────────────────────────────────────────────────
 
 export const UserProfileSchema = z.object({
     userId: z.string().uuid(),
@@ -30,24 +28,34 @@ export const LoginResponseSchema = z.object({
 
 export const RegisterResponseSchema = UserProfileSchema;
 
-// ─── Inferred Types ───────────────────────────────────────────────────────────
 
-/** Cuerpo de la petición POST /auth/login */
 export type LoginInput = z.infer<typeof LoginSchema>;
 
-/** Cuerpo de la petición POST /auth/register */
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 
-/** Perfil público del usuario (respuesta de GET /auth/me y POST /auth/register) */
+
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
-/** Respuesta de POST /auth/login */
+export const JwtPayloadSchema = z.object({
+    sub: z.string(),
+    role: z.string(),
+});
+
+export const RequestUserSchema = z.object({
+    userId: z.string(),
+    role: z.string(),
+});
+
+
+export type RequestUser = z.infer<typeof RequestUserSchema>;
+
+
+export type JwtPayload = z.infer<typeof JwtPayloadSchema>;
+
+
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
-// ─── NestJS DTOs (solo para validación de cuerpos HTTP de entrada) ────────────
 
-/** DTO para el cuerpo de POST /auth/login — valida y parsea con Zod via nestjs-zod */
-export class LoginDto extends createZodDto(LoginSchema) {}
-
-/** DTO para el cuerpo de POST /auth/register — valida y parsea con Zod via nestjs-zod */
-export class RegisterDto extends createZodDto(RegisterSchema) {}
+export class LoginDto extends createZodDto(LoginSchema) { }
+export class RegisterDto extends createZodDto(RegisterSchema) { }
