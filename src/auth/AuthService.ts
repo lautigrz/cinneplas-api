@@ -20,7 +20,7 @@ export class AuthService implements IAuthService {
     async getMe(userPublicId: string): Promise<any> {
         const user = await this.authRepository.findById(userPublicId);
         if (!user) {
-            throw new UnauthorizedException(userPublicId);
+            throw new UnauthorizedException("Credenciales inválidas");
         }
         return UserMapper.toResponse(user);
     }

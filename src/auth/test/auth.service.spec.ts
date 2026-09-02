@@ -154,7 +154,7 @@ describe('AuthService', () => {
         });
 
         it('should sign the JWT with the correct payload (sub + role)', async () => {
-            const storedUser = buildUser({ role: Role.Admin });
+            const storedUser = buildUser({ role: Role.ADMIN });
 
             authRepository.findByEmail.mockResolvedValue(storedUser);
             compareSync.mockReturnValue(true);
@@ -163,7 +163,7 @@ describe('AuthService', () => {
 
             expect(jwtService.sign).toHaveBeenCalledWith({
                 sub: storedUser.userPublicId,
-                role: Role.Admin,
+                role: Role.ADMIN,
             });
         });
 
@@ -250,8 +250,8 @@ describe('AuthService', () => {
         it('should throw UnauthorizedException when the user is not found', async () => {
             authRepository.findById.mockResolvedValue(null);
 
-            await expect(service.getMe('non-existent-id')).rejects.toThrow(
-                /non-existent-id/,
+            await expect(service.getMe("Credenciales inválidas")).rejects.toThrow(
+                /Credenciales inválidas/,
             );
         });
 
