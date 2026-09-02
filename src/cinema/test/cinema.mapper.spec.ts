@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { CinemaResponse, CinemaRoomResponse } from '../contracts/cinema.schemas.js';
 
 import { CinemaMapper } from '../mappers/CinemaMapper.js';
-import { CinemaResponseDTO } from '../dto/CinemaResponseDTO.js';
-import { CinemaRoomResponseDTO } from '../dto/CinemaRoomResponseDTO.js';
 import {
     buildCinema,
     buildCinemaWithRooms,
@@ -15,10 +14,16 @@ describe('CinemaMapper', () => {
     // ─── toResponse ──────────────────────────────────────────────────────────
 
     describe('toResponse', () => {
-        it('should return a CinemaResponseDTO', () => {
-            const result = CinemaMapper.toResponse(buildCinemaWithRooms());
+        it('should return a CinemaResponse object with the expected shape', () => {
+            const cinema = buildCinemaWithRooms();
+            const result = CinemaMapper.toResponse(cinema);
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
+            expect(result).toMatchObject<CinemaResponse>({
+                idPublic: cinema.idPublic,
+                name: cinema.name,
+                address: cinema.address,
+                rooms: expect.any(Array),
+            });
         });
 
         it('should map all base fields correctly', () => {
@@ -31,7 +36,7 @@ describe('CinemaMapper', () => {
             expect(result.address).toBe('Av. Sur 100');
         });
 
-        it('should map each room to a CinemaRoomResponseDTO', () => {
+        it('should map each room as a plain CinemaRoomResponse object', () => {
             const cinema = buildCinemaWithRooms({
                 rooms: [
                     { name: 'Sala 1', capacity: 100 },
@@ -42,7 +47,10 @@ describe('CinemaMapper', () => {
             const result = CinemaMapper.toResponse(cinema);
 
             expect(result.rooms).toHaveLength(2);
-            result.rooms!.forEach((r) => expect(r).toBeInstanceOf(CinemaRoomResponseDTO));
+            result.rooms!.forEach((r: CinemaRoomResponse) => {
+                expect(r).toHaveProperty('name');
+                expect(r).toHaveProperty('capacity');
+            });
         });
 
         it('should map room names and capacities correctly', () => {
@@ -69,10 +77,12 @@ describe('CinemaMapper', () => {
     // ─── toCreate ────────────────────────────────────────────────────────────
 
     describe('toCreate', () => {
-        it('should return a CinemaResponseDTO', () => {
+        it('should return a CinemaResponse plain object', () => {
             const result = CinemaMapper.toCreate(buildCinema());
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
+            expect(result).toHaveProperty('idPublic');
+            expect(result).toHaveProperty('name');
+            expect(result).toHaveProperty('address');
         });
 
         it('should map base fields from a Cinema entity (no rooms)', () => {
@@ -96,10 +106,12 @@ describe('CinemaMapper', () => {
     // ─── toUpdate ────────────────────────────────────────────────────────────
 
     describe('toUpdate', () => {
-        it('should return a CinemaResponseDTO', () => {
+        it('should return a CinemaResponse plain object', () => {
             const result = CinemaMapper.toUpdate(buildCinema());
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
+            expect(result).toHaveProperty('idPublic');
+            expect(result).toHaveProperty('name');
+            expect(result).toHaveProperty('address');
         });
 
         it('should map the updated name and address', () => {

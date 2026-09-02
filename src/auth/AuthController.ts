@@ -1,13 +1,13 @@
 import { Controller, Get, HttpCode, Inject, Post, Req, UseGuards } from "@nestjs/common";
 import { Body } from "@nestjs/common";
-import { RegisterDto } from "./dto/RegisterDto.js";
+import { RegisterDto } from "./contracts/auth.schemas.js";
 import { JwtAuthGuard } from "./guards/JwtAuthGuard.js";
 import { RolesGuard } from "./guards/RolesGuard.js";
 import { Roles } from "./decorators/Roles.js";
 import { CurrentUser } from "./decorators/CurrentUser.js";
 import { AUTH_SERVICE, type IAuthService } from "./interfaces/auth.service.interface.js";
 import { LocalAuthGuard } from "./guards/LocalAuthGuard.js";
-import type { AuthenticatedUser } from "./dto/AuthenticatedUser.js";
+import type { AuthenticatedUser } from "./contracts/authenticated-user.js";
 import type { Request } from "express";
 
 @Controller({ path: '/api/auth', version: '1' })

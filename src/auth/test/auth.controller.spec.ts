@@ -3,7 +3,7 @@ import type { MockedFunction } from 'vitest';
 
 import { AuthController } from '../AuthController.js';
 import type { IAuthService } from '../interfaces/auth.service.interface.js';
-import type { AuthenticatedUser } from '../dto/AuthenticatedUser.js';
+import type { AuthenticatedUser } from '../contracts/authenticated-user.js';
 import {
     buildRegisterInput,
     buildUser,
@@ -57,7 +57,7 @@ describe('AuthController', () => {
         it('should delegate to authService.register with the provided body', async () => {
             const input = buildRegisterInput();
             const expectedResponse = {
-                userPublicId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                userId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                 name: input.name,
                 email: input.email,
                 role: 'USER',
@@ -73,7 +73,7 @@ describe('AuthController', () => {
         });
 
         it('should return whatever the service resolves with', async () => {
-            const serviceResponse = { userPublicId: 'abc-123', name: 'Test', email: 'test@test.com', role: 'USER' };
+            const serviceResponse = { userId: 'abc-123', name: 'Test', email: 'test@test.com', role: 'USER' };
             authService.register.mockResolvedValue(serviceResponse);
 
             const result = await controller.register(buildRegisterInput());

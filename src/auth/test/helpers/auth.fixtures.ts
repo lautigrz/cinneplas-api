@@ -1,6 +1,5 @@
 import { Role, type User } from '../../../generated/prisma/client.js';
-import type { RegisterInput } from '../../schemas/RegisterSchema.js';
-import type { LoginInput } from '../../schemas/LoginSchema.js';
+import type { RegisterInput, LoginInput } from '../../contracts/auth.schemas.js';
 
 export const HASHED_PASSWORD =
   '$2b$10$hashedPasswordHashedPasswordHashedPasswordHashedPassw';

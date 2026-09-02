@@ -1,5 +1,5 @@
 import type { User } from "../../generated/prisma/client.js";
-import { RegisterInput } from "../schemas/RegisterSchema.js";
+import type { RegisterInput } from "../contracts/auth.schemas.js";
 
 export interface IAuthRepository {
     findByEmail(email: string): Promise<User | null>;

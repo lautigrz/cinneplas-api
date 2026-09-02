@@ -1,7 +1,5 @@
 import { User } from "../../generated/prisma/browser.js";
-import { LoginResponseDTO } from "../dto/LoginResponseDTO.js";
-
-export type UserProfile = LoginResponseDTO['user'];
+import type { UserProfile } from "../contracts/auth.schemas.js";
 
 export class UserMapper {
 
@@ -13,10 +11,5 @@ export class UserMapper {
             email: user.email,
             role: user.role,
         };
-    }
-
-    /** Respuesta completa de login — incluye accessToken + perfil */
-    static toLoginResponse(user: User, accessToken: string): LoginResponseDTO {
-        return new LoginResponseDTO(accessToken, UserMapper.toProfile(user));
     }
 }

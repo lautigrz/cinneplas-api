@@ -2,7 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
 import { AUTH_SERVICE, type IAuthService } from "../interfaces/auth.service.interface.js";
-import type { AuthenticatedUser } from "../dto/AuthenticatedUser.js";
+import type { AuthenticatedUser } from "../contracts/authenticated-user.js";
 import { InvalidCredentialsException } from "../exceptions/InvalidCredentialsException.js";
 
 @Injectable()

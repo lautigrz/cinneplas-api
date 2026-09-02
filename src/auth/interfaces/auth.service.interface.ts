@@ -1,12 +1,10 @@
-import { RegisterInput } from "../schemas/RegisterSchema.js";
-import type { LoginResponseDTO } from "../dto/LoginResponseDTO.js";
-import type { UserProfile } from "../mappers/user.mapper.js";
-import type { AuthenticatedUser } from "../dto/AuthenticatedUser.js";
+import type { RegisterInput, LoginResponse, UserProfile } from "../contracts/auth.schemas.js";
+import type { AuthenticatedUser } from "../contracts/authenticated-user.js";
 
 export interface IAuthService {
-    register(data: RegisterInput): Promise<any>;
+    register(data: RegisterInput): Promise<UserProfile>;
     validateUser(email: string, plainPassword: string): Promise<AuthenticatedUser | null>;
-    login(authenticatedUser: AuthenticatedUser): Promise<LoginResponseDTO>;
+    login(authenticatedUser: AuthenticatedUser): Promise<LoginResponse>;
     getMe(userPublicId: string): Promise<UserProfile>;
 }
 

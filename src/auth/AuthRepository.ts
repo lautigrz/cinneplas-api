@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { RegisterInput } from "./schemas/RegisterSchema.js";
+import { RegisterInput } from "./contracts/auth.schemas.js";
 import { IAuthRepository } from "./interfaces/auth.repository.js";
 import { PrismaService } from "../prisma/PrismaService.js";
 import { User } from "../generated/prisma/client.js";

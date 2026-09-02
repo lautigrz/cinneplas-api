@@ -10,8 +10,6 @@ import {
     buildCinemaWithRooms,
     buildCreateCinemaInput,
 } from './helpers/cinema.fixtures.js';
-import { CinemaResponseDTO } from '../dto/CinemaResponseDTO.js';
-import { CinemaRoomResponseDTO } from '../dto/CinemaRoomResponseDTO.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -32,7 +30,7 @@ describe('CinemaService', () => {
     // ─── create ──────────────────────────────────────────────────────────────
 
     describe('create', () => {
-        it('should create a cinema and return a CinemaResponseDTO', async () => {
+        it('should create a cinema and return a CinemaResponse plain object', async () => {
             const input = buildCreateCinemaInput();
             const stored = buildCinema({ name: input.name, address: input.address });
 
@@ -40,14 +38,11 @@ describe('CinemaService', () => {
 
             const result = await service.create(input);
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
-            expect(result).toEqual(
-                expect.objectContaining({
-                    idPublic: stored.idPublic,
-                    name: stored.name,
-                    address: stored.address,
-                }),
-            );
+            expect(result).toMatchObject({
+                idPublic: stored.idPublic,
+                name: stored.name,
+                address: stored.address,
+            });
         });
 
         it('should delegate creation to the repository with the provided input', async () => {
@@ -74,7 +69,7 @@ describe('CinemaService', () => {
     // ─── findAll ─────────────────────────────────────────────────────────────
 
     describe('findAll', () => {
-        it('should return an array of CinemaResponseDTO', async () => {
+        it('should return an array of CinemaResponse plain objects', async () => {
             cinemaRepository.findAll.mockResolvedValue([
                 buildCinemaWithRooms(),
                 buildCinemaWithRooms({ idPublic: 'a1b2c3d4-0000-0000-0000-000000000002', name: 'Cine Norte' }),
@@ -83,7 +78,11 @@ describe('CinemaService', () => {
             const result = await service.findAll();
 
             expect(result).toHaveLength(2);
-            result.forEach((item) => expect(item).toBeInstanceOf(CinemaResponseDTO));
+            result.forEach((item) => {
+                expect(item).toHaveProperty('idPublic');
+                expect(item).toHaveProperty('name');
+                expect(item).toHaveProperty('address');
+            });
         });
 
         it('should return an empty array when there are no cinemas', async () => {
@@ -104,10 +103,7 @@ describe('CinemaService', () => {
             const [result] = await service.findAll();
 
             expect(result.rooms).toHaveLength(1);
-            expect(result.rooms![0]).toBeInstanceOf(CinemaRoomResponseDTO);
-            expect(result.rooms![0]).toEqual(
-                expect.objectContaining({ name: 'Sala A', capacity: 100 }),
-            );
+            expect(result.rooms![0]).toMatchObject({ name: 'Sala A', capacity: 100 });
         });
     });
 
@@ -115,20 +111,17 @@ describe('CinemaService', () => {
     // ─── findById ────────────────────────────────────────────────────────────
 
     describe('findById', () => {
-        it('should return a CinemaResponseDTO when the cinema exists', async () => {
+        it('should return a CinemaResponse when the cinema exists', async () => {
             const cinema = buildCinemaWithRooms();
 
             cinemaRepository.findById.mockResolvedValue(cinema);
 
             const result = await service.findById(cinema.idPublic);
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
-            expect(result).toEqual(
-                expect.objectContaining({
-                    idPublic: cinema.idPublic,
-                    name: cinema.name,
-                }),
-            );
+            expect(result).toMatchObject({
+                idPublic: cinema.idPublic,
+                name: cinema.name,
+            });
         });
 
         it('should return null when the cinema does not exist', async () => {
@@ -166,7 +159,7 @@ describe('CinemaService', () => {
     // ─── update ──────────────────────────────────────────────────────────────
 
     describe('update', () => {
-        it('should return a CinemaResponseDTO after updating', async () => {
+        it('should return a CinemaResponse after updating', async () => {
             const input = buildCreateCinemaInput({ name: 'Cine Renovado' });
             const updated = buildCinema({ name: input.name });
 
@@ -174,7 +167,7 @@ describe('CinemaService', () => {
 
             const result = await service.update(updated.idPublic, input);
 
-            expect(result).toBeInstanceOf(CinemaResponseDTO);
+            expect(result).toHaveProperty('idPublic');
             expect(result.name).toBe('Cine Renovado');
         });
 
