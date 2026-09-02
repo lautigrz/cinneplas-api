@@ -9,6 +9,7 @@ import { PassportModule } from "@nestjs/passport";
 import { RolesGuard } from './guards/RolesGuard.js';
 import { AUTH_REPOSITORY } from './interfaces/auth.repository.js';
 import { AUTH_SERVICE } from './interfaces/auth.service.interface.js';
+import { LocalStrategy } from './strategies/LocalAuthStrategies.js';
 @Module({
     imports: [
         PassportModule.register({
@@ -24,7 +25,7 @@ import { AUTH_SERVICE } from './interfaces/auth.service.interface.js';
     providers: [
         { provide: AUTH_REPOSITORY, useClass: AuthRepository },
         { provide: AUTH_SERVICE, useClass: AuthService },
-        JwtStrategy, RolesGuard],
+        JwtStrategy, RolesGuard, LocalStrategy],
     exports: [JwtStrategy, RolesGuard],
 })
 export class AuthModule { }

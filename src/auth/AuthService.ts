@@ -1,41 +1,67 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import type { IAuthRepository } from "./interfaces/auth.repository.js";
 import { RegisterInput } from "./schemas/RegisterSchema.js";
-import { LoginInput } from "./schemas/LoginSchema.js";
 import bcrypt from 'bcrypt';
 import type { IAuthService } from "./interfaces/auth.service.interface.js";
 import { UserMapper } from "./mappers/user.mapper.js";
+import type { UserProfile } from "./mappers/user.mapper.js";
 import { JwtService } from "@nestjs/jwt";
 import { UserAlreadyExistsException } from "./exceptions/UserAlreadyExistsException.js";
-import { InvalidCredentialsException } from "./exceptions/InvalidCredentialsException.js";
 import { AUTH_REPOSITORY } from "./interfaces/auth.repository.js";
+import type { LoginResponseDTO } from "./dto/LoginResponseDTO.js";
+import type { AuthenticatedUser } from "./dto/AuthenticatedUser.js";
 
 
 @Injectable()
 export class AuthService implements IAuthService {
     constructor(
         @Inject(AUTH_REPOSITORY)
-        private readonly authRepository: IAuthRepository, private jwtService: JwtService) { }
+        private readonly authRepository: IAuthRepository,
+        private readonly jwtService: JwtService,
+    ) { }
 
-    async getMe(userPublicId: string): Promise<any> {
-        const user = await this.authRepository.findById(userPublicId);
+    async validateUser(email: string, plainPassword: string): Promise<AuthenticatedUser | null> {
+        const user = await this.authRepository.findByEmail(email);
         if (!user) {
-            throw new UnauthorizedException("Credenciales inválidas");
+            return null;
         }
-        return UserMapper.toResponse(user);
+        const isMatch = this.comparePassword(plainPassword, user.password);
+        if (!isMatch) {
+            return null;
+        }
+        return {
+            userPublicId: user.userPublicId,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        };
+    }
+
+    async login(authenticatedUser: AuthenticatedUser): Promise<LoginResponseDTO> {
+        const payload = {
+            sub: authenticatedUser.userPublicId,
+            role: authenticatedUser.role,
+        };
+        const accessToken = this.jwtService.sign(payload);
+
+        return {
+            accessToken,
+            user: {
+                userId: authenticatedUser.userPublicId,
+                name: authenticatedUser.name,
+                email: authenticatedUser.email,
+                role: authenticatedUser.role,
+            },
+        };
     }
 
     async register(data: RegisterInput): Promise<any> {
-
-        const user = await this.authRepository.findByEmail(data.email);
-        if (user) {
+        const existing = await this.authRepository.findByEmail(data.email);
+        if (existing) {
             throw new UserAlreadyExistsException(data.email);
         }
-
         const password = this.hashPassword(data.password);
-
         const userCreated = await this.authRepository.create({ ...data, password });
-
         return {
             userPublicId: userCreated.userPublicId,
             name: userCreated.name,
@@ -44,35 +70,19 @@ export class AuthService implements IAuthService {
         };
     }
 
-    async login(data: LoginInput): Promise<any> {
-        const user = await this.authRepository.findByEmail(data.email);
+    async getMe(userPublicId: string): Promise<UserProfile> {
+        const user = await this.authRepository.findById(userPublicId);
         if (!user) {
-            throw new InvalidCredentialsException();
+            throw new UnauthorizedException("Credenciales inválidas");
         }
-        const password = this.comparePassword(data.password, user.password);
-        if (!password) {
-            throw new InvalidCredentialsException();
-        }
-
-        const payload = {
-            sub: user.userPublicId,
-            role: user.role,
-        };
-
-        const accessToken = this.jwtService.sign(payload);
-
-        return {
-            accessToken,
-            user: UserMapper.toResponse(user),
-        };
+        return UserMapper.toProfile(user);
     }
 
-
-    private hashPassword(password: string) {
+    private hashPassword(password: string): string {
         return bcrypt.hashSync(password, 10);
     }
 
-    private comparePassword(password: string, hash: string) {
-        return bcrypt.compareSync(password, hash);
+    private comparePassword(plain: string, hash: string): boolean {
+        return bcrypt.compareSync(plain, hash);
     }
 }

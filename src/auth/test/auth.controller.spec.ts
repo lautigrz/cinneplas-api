@@ -3,8 +3,8 @@ import type { MockedFunction } from 'vitest';
 
 import { AuthController } from '../AuthController.js';
 import type { IAuthService } from '../interfaces/auth.service.interface.js';
+import type { AuthenticatedUser } from '../dto/AuthenticatedUser.js';
 import {
-    buildLoginInput,
     buildRegisterInput,
     buildUser,
 } from './helpers/auth.fixtures.js';
@@ -18,8 +18,19 @@ type MockAuthService = {
 function createMockAuthService(): MockAuthService {
     return {
         register: vi.fn(),
+        validateUser: vi.fn(),
         login: vi.fn(),
         getMe: vi.fn(),
+    };
+}
+
+function buildAuthenticatedUser(overrides: Partial<AuthenticatedUser> = {}): AuthenticatedUser {
+    return {
+        userPublicId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'USER',
+        ...overrides,
     };
 }
 
@@ -79,29 +90,33 @@ describe('AuthController', () => {
 
 
     // ─── login ───────────────────────────────────────────────────────────────
+    // El controller login() recibe req.user (AuthenticatedUser puesto por
+    // LocalAuthGuard/LocalStrategy) y lo delega al servicio para emitir el JWT.
 
     describe('login', () => {
-        it('should delegate to authService.login with the provided body', async () => {
-            const input = buildLoginInput();
+        it('should delegate to authService.login with req.user', async () => {
+            const authenticatedUser = buildAuthenticatedUser();
             const expectedResponse = {
                 accessToken: 'mocked.jwt.token',
-                user: { userId: 'uuid-1', name: 'John Doe', email: input.email, role: 'USER' },
+                user: { userId: authenticatedUser.userPublicId, name: authenticatedUser.name, email: authenticatedUser.email, role: authenticatedUser.role },
             };
 
             authService.login.mockResolvedValue(expectedResponse);
 
-            const result = await controller.login(input);
+            const fakeReq = { user: authenticatedUser } as any;
+            const result = await controller.login(fakeReq);
 
             expect(authService.login).toHaveBeenCalledOnce();
-            expect(authService.login).toHaveBeenCalledWith(input);
+            expect(authService.login).toHaveBeenCalledWith(authenticatedUser);
             expect(result).toEqual(expectedResponse);
         });
 
         it('should return whatever the service resolves with', async () => {
-            const serviceResponse = { accessToken: 'token123', user: {} };
+            const serviceResponse = { accessToken: 'token123', user: { userId: 'uuid-1', name: 'John Doe', email: 'user@test.com', role: 'USER' } };
             authService.login.mockResolvedValue(serviceResponse);
 
-            const result = await controller.login(buildLoginInput());
+            const fakeReq = { user: buildAuthenticatedUser() } as any;
+            const result = await controller.login(fakeReq);
 
             expect(result).toBe(serviceResponse);
         });
@@ -109,7 +124,8 @@ describe('AuthController', () => {
         it('should propagate exceptions thrown by authService.login', async () => {
             authService.login.mockRejectedValue(new Error('InvalidCredentials'));
 
-            await expect(controller.login(buildLoginInput())).rejects.toThrow('InvalidCredentials');
+            const fakeReq = { user: buildAuthenticatedUser() } as any;
+            await expect(controller.login(fakeReq)).rejects.toThrow('InvalidCredentials');
         });
     });
 
@@ -155,7 +171,7 @@ describe('AuthController', () => {
 
         it('should use user.sub as the public identifier when calling getMe', async () => {
             const publicId = 'c0ffee00-dead-beef-1234-000000000001';
-            authService.getMe.mockResolvedValue({});
+            authService.getMe.mockResolvedValue({ userId: publicId, name: 'Jane', email: 'jane@example.com', role: 'ADMIN' });
 
             await controller.getProfile({ sub: publicId });
 
