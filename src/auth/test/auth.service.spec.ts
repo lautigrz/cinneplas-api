@@ -4,7 +4,7 @@ import { Role } from '../../generated/prisma/client.js';
 
 import { AuthService } from '../AuthService.js';
 import { UserAlreadyExistsException } from '../exceptions/UserAlreadyExistsException.js';
-import { InvalidCredentialsException } from '../exceptions/InvalidCredentialsException.js';
+import { UnauthorizedException } from '@nestjs/common';
 import {
     createMockAuthRepository,
     createMockJwtService,
@@ -12,10 +12,10 @@ import {
     type MockJwtService,
 } from './helpers/auth.mocks.js';
 import {
-    buildLoginInput,
     buildRegisterInput,
     buildUser,
 } from './helpers/auth.fixtures.js';
+import type { AuthenticatedUser } from '../dto/AuthenticatedUser.js';
 
 // ─── Mock bcrypt module ───────────────────────────────────────────────────────
 
@@ -33,7 +33,6 @@ describe('AuthService', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
 
-
         const bcrypt = await import('bcrypt');
         hashSync = vi.mocked(bcrypt.default.hashSync);
         compareSync = vi.mocked(bcrypt.default.compareSync);
@@ -48,11 +47,12 @@ describe('AuthService', () => {
     });
 
 
-
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
 
+
+    // ─── register ────────────────────────────────────────────────────────────
 
     describe('register', () => {
         it('should create a new user and return the public profile (without password)', async () => {
@@ -131,95 +131,116 @@ describe('AuthService', () => {
     });
 
 
+    // ─── validateUser ────────────────────────────────────────────────────────
 
-    describe('login', () => {
-        it('should return an access token and the public user profile on valid credentials', async () => {
-            const input = buildLoginInput();
-            const storedUser = buildUser({ email: input.email });
-
-            authRepository.findByEmail.mockResolvedValue(storedUser);
-            compareSync.mockReturnValue(true);
-
-            const result = await service.login(input);
-
-            expect(result).toMatchObject({
-                accessToken: 'mocked.jwt.token',
-                user: {
-                    userId: storedUser.userPublicId,
-                    name: storedUser.name,
-                    email: storedUser.email,
-                    role: storedUser.role,
-                },
-            });
-        });
-
-        it('should sign the JWT with the correct payload (sub + role)', async () => {
-            const storedUser = buildUser({ role: Role.ADMIN });
-
-            authRepository.findByEmail.mockResolvedValue(storedUser);
-            compareSync.mockReturnValue(true);
-
-            await service.login(buildLoginInput());
-
-            expect(jwtService.sign).toHaveBeenCalledWith({
-                sub: storedUser.userPublicId,
-                role: Role.ADMIN,
-            });
-        });
-
-        it('should compare the incoming password against the stored hash', async () => {
-            const input = buildLoginInput({ password: 'myPassword' });
+    describe('validateUser', () => {
+        it('should return an AuthenticatedUser when credentials are valid', async () => {
             const storedUser = buildUser();
 
             authRepository.findByEmail.mockResolvedValue(storedUser);
             compareSync.mockReturnValue(true);
 
-            await service.login(input);
+            const result = await service.validateUser(storedUser.email, 'password123');
 
-            expect(compareSync).toHaveBeenCalledWith(
-                'myPassword',
-                storedUser.password,
-            );
+            expect(result).toEqual({
+                userPublicId: storedUser.userPublicId,
+                name: storedUser.name,
+                email: storedUser.email,
+                role: storedUser.role,
+            });
         });
 
-        it('should throw InvalidCredentialsException when the user does not exist', async () => {
+        it('should return null when the user does not exist', async () => {
             authRepository.findByEmail.mockResolvedValue(null);
 
-            await expect(service.login(buildLoginInput())).rejects.toThrow(
-                InvalidCredentialsException,
-            );
+            const result = await service.validateUser('unknown@example.com', 'password123');
+
+            expect(result).toBeNull();
         });
 
-        it('should throw InvalidCredentialsException when the password is wrong', async () => {
+        it('should return null when the password is incorrect', async () => {
             authRepository.findByEmail.mockResolvedValue(buildUser());
             compareSync.mockReturnValue(false);
 
-            await expect(service.login(buildLoginInput())).rejects.toThrow(
-                InvalidCredentialsException,
-            );
+            const result = await service.validateUser('john@example.com', 'wrongPassword');
+
+            expect(result).toBeNull();
         });
 
-        it('should NOT call jwtService.sign when credentials are invalid', async () => {
-            authRepository.findByEmail.mockResolvedValue(null);
+        it('should compare plain password against stored hash', async () => {
+            const storedUser = buildUser();
+            authRepository.findByEmail.mockResolvedValue(storedUser);
+            compareSync.mockReturnValue(true);
 
-            await expect(service.login(buildLoginInput())).rejects.toThrow(
-                InvalidCredentialsException,
-            );
+            await service.validateUser(storedUser.email, 'myPlainPassword');
 
-            expect(jwtService.sign).not.toHaveBeenCalled();
+            expect(compareSync).toHaveBeenCalledWith('myPlainPassword', storedUser.password);
+        });
+
+        it('should NOT expose the password in the returned AuthenticatedUser', async () => {
+            const storedUser = buildUser();
+            authRepository.findByEmail.mockResolvedValue(storedUser);
+            compareSync.mockReturnValue(true);
+
+            const result = await service.validateUser(storedUser.email, 'password123');
+
+            expect(result).not.toHaveProperty('password');
+        });
+    });
+
+
+    // ─── login ────────────────────────────────────────────────────────────────
+    // login() recibe un AuthenticatedUser ya validado (puesto en req.user
+    // por LocalStrategy) y emite el JWT.
+
+    describe('login', () => {
+        function buildAuthenticatedUser(overrides: Partial<AuthenticatedUser> = {}): AuthenticatedUser {
+            const user = buildUser();
+            return {
+                userPublicId: user.userPublicId,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                ...overrides,
+            };
+        }
+
+        it('should return an accessToken and the public user profile', async () => {
+            const authenticatedUser = buildAuthenticatedUser();
+
+            const result = await service.login(authenticatedUser);
+
+            expect(result).toMatchObject({
+                accessToken: 'mocked.jwt.token',
+                user: {
+                    userId: authenticatedUser.userPublicId,
+                    name: authenticatedUser.name,
+                    email: authenticatedUser.email,
+                    role: authenticatedUser.role,
+                },
+            });
+        });
+
+        it('should sign the JWT with sub = userPublicId and role', async () => {
+            const authenticatedUser = buildAuthenticatedUser({ role: Role.ADMIN });
+
+            await service.login(authenticatedUser);
+
+            expect(jwtService.sign).toHaveBeenCalledWith({
+                sub: authenticatedUser.userPublicId,
+                role: Role.ADMIN,
+            });
         });
 
         it('should NOT expose the password in the returned user object', async () => {
-            authRepository.findByEmail.mockResolvedValue(buildUser());
-            compareSync.mockReturnValue(true);
-
-            const result = await service.login(buildLoginInput());
+            const result = await service.login(buildAuthenticatedUser());
 
             expect(result.user).not.toHaveProperty('password');
         });
     });
 
 
+    // ─── getMe ────────────────────────────────────────────────────────────────
 
     describe('getMe', () => {
         it('should return the public profile of the user when found', async () => {
@@ -250,7 +271,15 @@ describe('AuthService', () => {
         it('should throw UnauthorizedException when the user is not found', async () => {
             authRepository.findById.mockResolvedValue(null);
 
-            await expect(service.getMe("Credenciales inválidas")).rejects.toThrow(
+            await expect(service.getMe('non-existent-id')).rejects.toThrow(
+                UnauthorizedException,
+            );
+        });
+
+        it('should include "Credenciales inválidas" in the error message', async () => {
+            authRepository.findById.mockResolvedValue(null);
+
+            await expect(service.getMe('any-id')).rejects.toThrow(
                 /Credenciales inválidas/,
             );
         });
