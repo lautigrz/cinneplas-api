@@ -59,3 +59,12 @@ export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
 export class LoginDto extends createZodDto(LoginSchema) { }
 export class RegisterDto extends createZodDto(RegisterSchema) { }
+
+export const OAuthUserSchema = z.object({
+    email: z.string().email(),
+    name: z.string(),
+    provider: z.string(),
+    providerAccountId: z.string(),
+});
+
+export type OAuthUser = z.infer<typeof OAuthUserSchema>;

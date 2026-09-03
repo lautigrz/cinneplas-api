@@ -1,6 +1,6 @@
-import { Controller, Get, HttpCode, Inject, Post, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpCode, Inject, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Body } from "@nestjs/common";
-import { RegisterDto, type RequestUser } from "./contracts/auth.schemas.js";
+import { OAuthUser, RegisterDto, type RequestUser } from "./contracts/auth.schemas.js";
 import { JwtAuthGuard } from "./guards/JwtAuthGuard.js";
 import { RolesGuard } from "./guards/RolesGuard.js";
 import { Roles } from "./decorators/Roles.js";
@@ -9,6 +9,11 @@ import { AUTH_SERVICE, type IAuthService } from "./interfaces/auth.service.inter
 import { LocalAuthGuard } from "./guards/LocalAuthGuard.js";
 import type { AuthenticatedUser } from "./contracts/authenticated-user.js";
 import { GoogleAuthGuard } from "./guards/GoogleAuthGuard.js";
+import type { Response } from "express";
+
+interface GoogleCallbackRequest extends Request {
+    user: OAuthUser;
+}
 
 @Controller({ path: '/api/auth', version: '1' })
 export class AuthController {
@@ -33,9 +38,14 @@ export class AuthController {
 
     @Get('google/callback')
     @UseGuards(GoogleAuthGuard)
-    async googleLoginCallback(@Req() req: any) {
-        console.log(req?.user);
-        //return this.authService.login(user);
+    async googleLoginCallback(@Req() req: GoogleCallbackRequest, @Res() res: Response) {
+        const user = req.user;
+        const loginResponse = await this.authService.oauthLogin(user);
+
+        const qs = new URLSearchParams({
+            token: loginResponse.accessToken,
+        });
+        res.redirect(`http://localhost:5173/oauth/callback?${qs.toString()}`);
     }
 
 
@@ -48,7 +58,7 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Get('me')
-    @Roles("ADMIN")
+    @Roles("ADMIN", "USER")
     @HttpCode(200)
     getProfile(@CurrentUser() user: RequestUser) {
         return this.authService.getMe(user.userId);

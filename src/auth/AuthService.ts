@@ -6,7 +6,7 @@ import { UserMapper } from "./mappers/user.mapper.js";
 import { JwtService } from "@nestjs/jwt";
 import { UserAlreadyExistsException } from "./exceptions/UserAlreadyExistsException.js";
 import { AUTH_REPOSITORY } from "./interfaces/auth.repository.js";
-import type { RegisterInput, LoginResponse, UserProfile } from "./contracts/auth.schemas.js";
+import type { RegisterInput, LoginResponse, UserProfile, OAuthUser } from "./contracts/auth.schemas.js";
 import type { AuthenticatedUser } from "./contracts/authenticated-user.js";
 
 
@@ -18,9 +18,14 @@ export class AuthService implements IAuthService {
         private readonly jwtService: JwtService,
     ) { }
 
+    async oauthLogin(data: OAuthUser): Promise<LoginResponse> {
+        const user = await this.authRepository.upsertOAuthUser(data);
+        return this.login(user);
+    }
+
     async validateUser(email: string, plainPassword: string): Promise<AuthenticatedUser | null> {
         const user = await this.authRepository.findByEmail(email);
-        if (!user) {
+        if (!user || !user.password) {
             return null;
         }
         const isMatch = this.comparePassword(plainPassword, user.password);

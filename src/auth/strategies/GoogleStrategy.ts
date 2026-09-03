@@ -3,6 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-google-oauth20";
 import { VerifiedCallback } from "passport-jwt";
 import { Injectable } from "@nestjs/common";
+import { OAuthUser } from "../contracts/auth.schemas.js";
 
 dotenv.config();
 
@@ -18,16 +19,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    validate(acessToken: string, profile: any, done: VerifiedCallback): void {
-
+    validate(acessToken: string, refreshToken: string, profile: any, done: VerifiedCallback): void {
         console.log("access token: ", acessToken);
+        console.log("refresh token: ", refreshToken);
         console.log("profile: ", profile);
 
-        const { name, emails } = profile;
-        const user = {
-            email: emails[0].value,
-            name: name.displayName,
-
+        const { _json: { email }, provider, id, displayName } = profile;
+        const name = displayName || profile._json?.name || profile._json?.given_name || 'Google User';
+        const user: OAuthUser = {
+            email,
+            name,
+            provider,
+            providerAccountId: id,
         };
 
         done(null, user);
