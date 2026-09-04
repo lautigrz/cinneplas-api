@@ -25,6 +25,7 @@ export class CinemaController {
     @Roles("ADMIN")
     @HttpCode(200)
     async getAll() {
+
         return this.cinemaService.findAll();
     }
 

@@ -61,6 +61,9 @@ export class AuthController {
     @Roles("ADMIN", "USER")
     @HttpCode(200)
     getProfile(@CurrentUser() user: RequestUser) {
+
+        console.log(user);
+
         return this.authService.getMe(user.userId);
     }
 }
