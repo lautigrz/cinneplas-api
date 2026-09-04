@@ -56,8 +56,9 @@ model Cinema {
 }
 
 model CinemaRoom {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(100)
+  id       Int    @id @default(autoincrement())
+  idPublic String @unique @default(uuid())
+  name     String @db.VarChar(100)
 
   capacity Int @db.Integer
 
