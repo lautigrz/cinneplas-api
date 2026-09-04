@@ -10,6 +10,8 @@ import { RolesGuard } from './guards/RolesGuard.js';
 import { AUTH_REPOSITORY } from './interfaces/auth.repository.js';
 import { AUTH_SERVICE } from './interfaces/auth.service.interface.js';
 import { LocalStrategy } from './strategies/LocalAuthStrategies.js';
+import { GoogleStrategy } from './strategies/GoogleStrategy.js';
+import { JwtAuthGuard } from './guards/JwtAuthGuard.js';
 @Module({
     imports: [
         PassportModule.register({
@@ -25,7 +27,7 @@ import { LocalStrategy } from './strategies/LocalAuthStrategies.js';
     providers: [
         { provide: AUTH_REPOSITORY, useClass: AuthRepository },
         { provide: AUTH_SERVICE, useClass: AuthService },
-        JwtStrategy, RolesGuard, LocalStrategy],
-    exports: [JwtStrategy, RolesGuard],
+        JwtStrategy, RolesGuard, LocalStrategy, GoogleStrategy, JwtAuthGuard],
+    exports: [JwtAuthGuard, RolesGuard, PassportModule],
 })
 export class AuthModule { }
