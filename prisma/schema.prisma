@@ -112,3 +112,17 @@ model SeatCategory {
 
   @@map("seat_categories")
 }
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  idPublic    String   @unique @default(uuid())
+  title       String   @db.VarChar(100)
+  description String   @db.VarChar(255)
+  img         String   @db.VarChar(255)
+  duration    Int      @db.Integer
+  releaseDate DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("movies")
+}

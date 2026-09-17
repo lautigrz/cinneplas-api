@@ -14,6 +14,7 @@ function createMockRepository(): MockCinemaRoomRepository {
         findCinemaByIdPublic: vi.fn(),
         createWithSeats: vi.fn(),
         findByIdPublic: vi.fn(),
+        updateRoom: vi.fn()
     };
 }
 

@@ -12,6 +12,8 @@ function createMockService(): MockCinemaRoomService {
     return {
         createRoomWithSeats: vi.fn(),
         getRoomByIdPublic: vi.fn(),
+        updateRoom: vi.fn()
+
     };
 }
 
