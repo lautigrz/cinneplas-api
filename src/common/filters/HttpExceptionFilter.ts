@@ -20,7 +20,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         let status: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         let body: Record<string, any> = { message: "Error interno del servidor" };
-
         if (exception instanceof ZodValidationException) {
             status = HttpStatus.UNPROCESSABLE_ENTITY;
             const zodError = exception.getZodError();
