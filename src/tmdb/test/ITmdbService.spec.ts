@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { HttpStatus } from "@nestjs/common";
-import { ITmdbService } from "../ITmdbService.js";
+import { TmdbService } from "../ITmdbService.js";
 import {
     TmdbMovieNotFoundException,
     TmdbServiceUnavailableException,
@@ -20,12 +20,12 @@ const mockMovieResponse = {
     release_date: "2010-07-16",
 };
 
-describe("ITmdbService", () => {
-    let service: ITmdbService;
+describe("TmdbService", () => {
+    let service: TmdbService;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        service = new ITmdbService();
+        service = new TmdbService();
         process.env.TMDB_URL = "https://api.themoviedb.org/3";
         process.env.TMDB_LENGUAGE = "language=es-AR";
         process.env.TMDB_TOKEN = "test-token";

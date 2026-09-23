@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { IMovieService } from "../IMovieService.js";
+import { MovieService } from "../IMovieService.js";
 import { MOVIE_REPOSITORY } from "../interfaces/MovieRespository.js";
 import { TMDB_SERVICE } from "../../tmdb/interfaces/TmdbService.js";
 import { AWS_SERVICE } from "../../aws/interfaces/AwsService.js";
@@ -42,22 +42,22 @@ vi.mock("sharp", () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-describe("IMovieService", () => {
-    let service: IMovieService;
+describe("MovieService", () => {
+    let service: MovieService;
 
     beforeEach(async () => {
         vi.clearAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                IMovieService,
+                MovieService,
                 { provide: TMDB_SERVICE, useValue: mockTmdbService },
                 { provide: MOVIE_REPOSITORY, useValue: mockMovieRepository },
                 { provide: AWS_SERVICE, useValue: mockAwsService },
             ],
         }).compile();
 
-        service = module.get<IMovieService>(IMovieService);
+        service = module.get<MovieService>(MovieService);
     });
 
     describe("findMovieById", () => {

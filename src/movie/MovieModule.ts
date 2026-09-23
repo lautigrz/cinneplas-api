@@ -2,9 +2,9 @@ import { Module } from "@nestjs/common";
 import { TmdbModule } from "../tmdb/TmdbModule.js";
 import { MovieController } from "./MovieController.js";
 import { MOVIE_SERVICE } from "./interfaces/MovieService.js";
-import { IMovieService } from "./IMovieService.js";
+import { MovieService } from "./IMovieService.js";
 import { MOVIE_REPOSITORY } from "./interfaces/MovieRespository.js";
-import { IMovieRepository } from "./MovieRepository.js";
+import { MovieRepository } from "./MovieRepository.js";
 import { AwsModule } from "../aws/AwsModule.js";
 
 
@@ -17,8 +17,11 @@ import { AwsModule } from "../aws/AwsModule.js";
         MovieController
     ],
     providers: [
-        { provide: MOVIE_SERVICE, useClass: IMovieService },
-        { provide: MOVIE_REPOSITORY, useClass: IMovieRepository }
+        { provide: MOVIE_SERVICE, useClass: MovieService },
+        { provide: MOVIE_REPOSITORY, useClass: MovieRepository }
     ],
+    exports: [
+        { provide: MOVIE_REPOSITORY, useClass: MovieRepository }
+    ]
 })
 export class MovieModule { }
