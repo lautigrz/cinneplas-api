@@ -70,6 +70,8 @@ model CinemaRoom {
 
   seats Seats[]
 
+  showTimes ShowTime[]
+
   @@map("cinema_rooms")
 }
 
@@ -125,5 +127,25 @@ model Movie {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  showTimes ShowTime[]
+
   @@map("movies")
+}
+
+model ShowTime {
+  id       Int    @id @default(autoincrement())
+  idPublic String @unique @default(uuid())
+
+  dateTime DateTime
+
+  roomId Int
+  room   CinemaRoom @relation(fields: [roomId], references: [id])
+
+  movieId Int
+  movie   Movie @relation(fields: [movieId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("show_times")
 }

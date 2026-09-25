@@ -20,7 +20,6 @@ export const CreateCinemaRoomSchema = z.object({
     seats: z.array(SeatSchema).min(1, "Debe incluir al menos un asiento"),
 });
 
-// Seat patch: el id es obligatorio (para identificar cuál actualizar), resto opcional
 export const PatchSeatSchema = z.object({
     id: z.number().int().positive("El ID del asiento es obligatorio para actualizarlo"),
     row: z.string().min(1).optional(),

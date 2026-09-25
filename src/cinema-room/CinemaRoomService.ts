@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { CINEMA_ROOM_REPOSITORY, type ICinemaRoomRepository } from "./interfaces/cinema-room.repository.js";
+import { CINEMA_ROOM_REPOSITORY, type CinemaRoomRepository } from "./interfaces/cinema-room.repository.js";
 import type { ICinemaRoomService } from "./interfaces/cinema-room.service.js";
 import type { CreateCinemaRoomInput, PatchCinemaRoomInput, CinemaRoomResponse } from "./contracts/cinema-room.schema.js";
 import { CinemaRoomMapper } from "./mappers/cinema.room.mapper.js";
@@ -10,7 +10,7 @@ import { CinemaRoomNotFoundException } from "./exceptions/CinemaRoomNotFoundExce
 export class CinemaRoomService implements ICinemaRoomService {
     constructor(
         @Inject(CINEMA_ROOM_REPOSITORY)
-        private readonly cinemaRoomRepository: ICinemaRoomRepository
+        private readonly cinemaRoomRepository: CinemaRoomRepository
     ) { }
 
     async createRoomWithSeats(data: CreateCinemaRoomInput): Promise<CinemaRoomResponse> {

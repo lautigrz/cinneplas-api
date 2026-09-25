@@ -13,6 +13,6 @@ import { CINEMA_ROOM_REPOSITORY } from "./interfaces/cinema-room.repository.js";
         { provide: CINEMA_ROOM_SERVICE, useClass: CinemaRoomService },
         { provide: CINEMA_ROOM_REPOSITORY, useClass: CinemaRoomRepository },
     ],
-    exports: [CINEMA_ROOM_SERVICE],
+    exports: [{ provide: CINEMA_ROOM_REPOSITORY, useClass: CinemaRoomRepository }],
 })
 export class CinemaRoomModule { }

@@ -1,22 +1,29 @@
 import { AWS_SERVICE, type AwsService } from "../aws/interfaces/AwsService.js";
 import { TMDB_SERVICE } from "../tmdb/interfaces/TmdbService.js";
-import type { TmdbService } from "../tmdb/interfaces/TmdbService.js";
-import { MovieInput } from "./contracts/movie.schema.js";
-import { MOVIE_REPOSITORY, type MovieRepository } from "./interfaces/MovieRespository.js";
-import type { MovieService } from "./interfaces/MovieService.js";
+import type { ITmdbService } from "../tmdb/interfaces/TmdbService.js";
+import { ListMoviePostersRequestInput, MovieInput, MoviePoster } from "./contracts/movie.schema.js";
+import { MOVIE_REPOSITORY, type IMovieRepository } from "./interfaces/MovieRespository.js";
+import type { IMovieService as IMovieServiceInterface } from "./interfaces/MovieService.js";
 import { Inject, Injectable } from "@nestjs/common";
 import sharp from "sharp";
 
 @Injectable()
-export class IMovieService implements MovieService {
+export class MovieService implements IMovieServiceInterface {
     constructor(
         @Inject(TMDB_SERVICE)
-        private readonly tmdbService: TmdbService,
+        private readonly tmdbService: ITmdbService,
         @Inject(MOVIE_REPOSITORY)
-        private readonly movieRepository: MovieRepository,
+        private readonly movieRepository: IMovieRepository,
         @Inject(AWS_SERVICE)
         private readonly awsService: AwsService
     ) { }
+
+
+    async getListMoviePosters(input: ListMoviePostersRequestInput): Promise<MoviePoster[]> {
+        const { cinemaId, page, limit } = input;
+
+        throw new Error("Method not implemented.");
+    }
 
     async createMovie(data: MovieInput): Promise<void> {
         let movieId: string | undefined;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { IMovieRepository } from "../MovieRepository.js";
+import { MovieRepository } from "../MovieRepository.js";
 import { ConflictException } from "@nestjs/common";
 import { Prisma } from "../../generated/prisma/client.js";
 import type { MovieInput } from "../contracts/movie.schema.js";
@@ -21,13 +21,13 @@ const mockPrismaService = {
     },
 };
 
-describe("IMovieRepository", () => {
-    let repository: IMovieRepository;
+describe("MovieRepository", () => {
+    let repository: MovieRepository;
 
     beforeEach(() => {
         vi.clearAllMocks();
         // Instantiate directly to avoid NestJS DI token resolution issues with PrismaService
-        repository = new IMovieRepository(mockPrismaService as any);
+        repository = new MovieRepository(mockPrismaService as any);
     });
 
     describe("save", () => {

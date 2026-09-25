@@ -1,4 +1,4 @@
-export interface TmdbService {
+export interface ITmdbService {
     findMovieById(id: number): Promise<any>
 }
 

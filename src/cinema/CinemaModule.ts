@@ -12,7 +12,9 @@ import { CINEMA_REPOSITORY } from "./interfaces/cinema.repository.js";
     providers: [
         { provide: CINEMA_SERVICE, useClass: CinemaService },
         { provide: CINEMA_REPOSITORY, useClass: CinemaRepository }],
-    exports: [],
+    exports: [
+        { provide: CINEMA_REPOSITORY, useClass: CinemaRepository }
+    ],
 })
 
 export class CinemaModule { }

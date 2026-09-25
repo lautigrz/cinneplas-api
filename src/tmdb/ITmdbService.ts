@@ -1,6 +1,7 @@
 import { TmdbMovieNotFoundException, TmdbServiceUnavailableException } from "./exceptions/TmdbExceptions.js";
+import type { ITmdbService as ITmdbServiceInterface } from "./interfaces/TmdbService.js";
 
-export class ITmdbService {
+export class TmdbService implements ITmdbServiceInterface {
     constructor() { }
 
     async findMovieById(id: number): Promise<any> {

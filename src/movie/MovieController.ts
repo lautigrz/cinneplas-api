@@ -1,20 +1,20 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Res } from "@nestjs/common";
-import { MOVIE_SERVICE, type MovieService } from "./interfaces/MovieService.js";
+import { MOVIE_SERVICE, type IMovieService } from "./interfaces/MovieService.js";
 import { MovieRequestSchema, MovieSchema } from "./contracts/movie.schema.js";
 
 import type { CreateMovieInput } from "./contracts/movie.schema.js";
 
 import type { Response } from "express";
 import { Inject } from "@nestjs/common";
-import { TMDB_SERVICE, type TmdbService } from "../tmdb/interfaces/TmdbService.js";
+import { TMDB_SERVICE, type ITmdbService } from "../tmdb/interfaces/TmdbService.js";
 
 @Controller("api/movies")
 export class MovieController {
     constructor(
         @Inject(MOVIE_SERVICE)
-        private readonly movieService: MovieService,
+        private readonly movieService: IMovieService,
         @Inject(TMDB_SERVICE)
-        private readonly tmdbService: TmdbService
+        private readonly tmdbService: ITmdbService
     ) { }
 
     @Get("tmdb/:id")

@@ -1,14 +1,24 @@
 import { ConflictException, Injectable } from "@nestjs/common";
-import type { MovieRepository } from "./interfaces/MovieRespository.js";
-import type { MovieInput } from "./contracts/movie.schema.js";
+import type { IMovieRepository as IMovieRepositoryInterface } from "./interfaces/MovieRespository.js";
+import type { MovieInput, MoviePoster } from "./contracts/movie.schema.js";
 import { PrismaService } from "../prisma/PrismaService.js";
 import { MovieMapper } from "./mappers/movie.mapper.js";
-import { Prisma } from "../generated/prisma/client.js";
+import { Movie, Prisma } from "../generated/prisma/client.js";
 
 @Injectable()
-export class IMovieRepository implements MovieRepository {
+export class MovieRepository implements IMovieRepositoryInterface {
 
     constructor(private readonly prisma: PrismaService) { }
+
+
+    async getIdMovie(idPublic: string): Promise<{ id: number; } | null> {
+        const movie = await this.prisma.movie.findUnique({
+            where: { idPublic },
+            select: { id: true }
+        });
+
+        return movie;
+    }
 
     async delete(idPublic: string): Promise<void> {
         try {

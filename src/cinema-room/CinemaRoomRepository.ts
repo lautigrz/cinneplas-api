@@ -1,11 +1,27 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/PrismaService.js";
-import type { ICinemaRoomRepository } from "./interfaces/cinema-room.repository.js";
+import type { CinemaRoomRepository as ICinemaRoomRepositoryInterface } from "./interfaces/cinema-room.repository.js";
 import type { CreateCinemaRoomInput, PatchCinemaRoomInput } from "./contracts/cinema-room.schema.js";
 
 @Injectable()
-export class CinemaRoomRepository implements ICinemaRoomRepository {
+export class CinemaRoomRepository implements ICinemaRoomRepositoryInterface {
     constructor(private readonly prisma: PrismaService) { }
+
+    async findRoomByIdPublic(idPublicRoom: string, idPublicCinema: string): Promise<{ id: number; } | null> {
+
+        const room = await this.prisma.cinemaRoom.findFirst({
+            where: {
+                idPublic: idPublicRoom,
+                cinema: {
+                    idPublic: idPublicCinema
+                }
+            },
+            select: {
+                id: true
+            }
+        })
+        return room;
+    }
 
     async findCinemaByIdPublic(idPublic: string): Promise<{ id: number } | null> {
         return this.prisma.cinema.findUnique({
